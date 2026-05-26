@@ -1,48 +1,42 @@
 <?php
-class Auth {
-    
-    // Hàm mặc định khi vào /auth
-    function index() {
-        $this->login();
-    }
 
-    // Gọi file view hiển thị form bên trên
-    function login() {
-        require_once '../app/views/login.php';
-    }
+class auth
+{
+    protected $users = [
+        'Sancho' => 'LBCDon',
+        'sancho' => 'LBCDon'
+    ];
 
-    // Xử lý dữ liệu khi bấm nút Đăng nhập
-    function handleLogin() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $username = $_POST['username'];
+    public function login() 
+    {
+        if($_SERVER['REQUEST_METHOD'] === 'POST') 
+        {
+            $username = $_POST['username'] ?? '';
             $password = $_POST['password'];
 
-            // Tài khoản admin mặc định
-            if ($username == 'admin' && $password == '123456') {
-                if (session_status() === PHP_SESSION_NONE) {
-                    session_start();
-                }
-                
-                $_SESSION['user_logged_in'] = true;
+            // Sửa lại thành $this->users (có chữ s cho đúng tên mảng ở trên)
+            if(isset($this->users[$username]) && $this->users[$username] === $password) 
+            {
                 $_SESSION['username'] = $username;
-                
-                // Đăng nhập đúng -> Qua thẳng trang chủ qua index.php
-                header('Location: /PMNM_68PM4_QLSV/public/index.php?url=home');
+                if(isset($_POST['remember'])) {
+                    setcookie('username', $username, time() + 3600, "/");
+                }
+                header('Location: /PMNM_68PM4_QLSV/public/index.php?url=home/index');
                 exit();
-            } else {
-                // Đăng nhập sai -> Báo lỗi ngắn gọn
-                echo "Sai tài khoản hoặc mật khẩu! <a href='/PMNM_68PM4_QLSV/public/index.php?url=auth/login'>Thử lại</a>";
+            } 
+            else 
+            {
+                header('Location: /PMNM_68PM4_QLSV/public/index.php?url=home/login');
+                exit();
             }
         }
     }
 
-    // Hàm đăng xuất
-    function logout() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        session_destroy(); 
-        header('Location: /PMNM_68PM4_QLSV/public/index.php?url=auth/login');
+    public function logout()
+    {
+        session_unset();
+        session_destroy();
+        header("Location: /PMNM_68PM4_QLSV/public/index.php?url=home/login");
         exit();
     }
 }
