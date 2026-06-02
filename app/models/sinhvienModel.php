@@ -19,6 +19,17 @@ class sinhvienModel {
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
 }
+public function create($hoten, $gioitinh, $mssv) {
+    $sql_query = "INSERT INTO tbl_sinhvien (hoten, gioitinh, mssv) VALUES (:hoten, :gioitinh, :mssv)";
+    $stmt = $this->conn->prepare($sql_query);
+    
+    // Ràng buộc dữ liệu chống SQL Injection
+    $stmt->bindParam(':hoten', $hoten);
+    $stmt->bindParam(':gioitinh', $gioitinh);
+    $stmt->bindParam(':mssv', $mssv);
+    
+    return $stmt->execute();
+}
 }
 ?>
 
