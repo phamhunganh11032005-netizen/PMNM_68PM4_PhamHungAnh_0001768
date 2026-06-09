@@ -6,15 +6,20 @@ class Controller {
     }
 
     public function view($view, $data = []) {
-
+        // Giải nén mảng dữ liệu để các file view dùng được biến $sinhviens, $currentPage
         extract($data);
         
         $viewContent = $view;
         
-        if (file_exists('../app/views/layoutmaster.php')) {
-            require_once '../app/views/layoutmaster.php';
+        // ĐƯỜNG DẪN ĐÚNG: layoutmaster.php của bạn đang nằm trong thư mục partials
+        $layoutPath = '../app/views/partials/layoutmaster.php';
+        
+        if (file_exists($layoutPath)) {
+            require_once $layoutPath;
         } else {
+            // Nếu không tìm thấy layoutmaster thì mới nạp trực tiếp file view trần trụi
             require_once '../app/views/' . $view . '.php';
         }
     }
 }
+?>

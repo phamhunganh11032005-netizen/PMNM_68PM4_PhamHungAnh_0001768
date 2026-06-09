@@ -1,12 +1,12 @@
 <?php
-// Gọi phần đầu trang
-require_once 'partials/header.php';
+// Gọi phần đầu trang (nằm cùng thư mục partials)
+require_once __DIR__ . '/header.php';
 
-// Nạp nội dung động của từng trang do Controller chỉ định
+// Nạp nội dung động (lùi 1 cấp ra views rồi vào thư mục chức năng)
 if (!empty($viewContent)) {
-    require_once $viewContent . '.php';
+    require_once __DIR__ . '/../' . $viewContent . '.php';
 }
 
-// Gọi phần cuối trang
-require_once 'partials/footer.php';
+// Gọi phần cuối trang (nằm cùng thư mục partials)
+require_once __DIR__ . '/footer.php';
 ?>
