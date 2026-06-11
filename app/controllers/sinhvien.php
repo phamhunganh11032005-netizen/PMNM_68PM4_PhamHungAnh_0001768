@@ -4,21 +4,15 @@ require_once '../app/core/Controller.php';
 class sinhvien extends Controller {
     
     public function index() {
-        // Cấu hình số lượng sinh viên hiển thị trên mỗi trang
         $limit = 5; 
-        
-        // Lấy số trang hiện tại từ URL (Ví dụ: ?page=2), mặc định là trang 1
         $currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         if ($currentPage < 1) $currentPage = 1; 
         
-        // Tính toán vị trí bắt đầu lấy dữ liệu (offset)
         $offset = ($currentPage - 1) * $limit;
 
-        // Gọi Model để xử lý dữ liệu phân trang
         $sinhvienModel = $this->model('sinhvienModel');
         $listSinhVien = $sinhvienModel->getSinhVienPaging($limit, $offset);
         
-
         $totalRows = $sinhvienModel->countAllSinhVien();
         $totalPages = ceil($totalRows / $limit); 
 
@@ -28,6 +22,7 @@ class sinhvien extends Controller {
             'currentPage' => $currentPage
         ]);
     }
+
 
     public function create() {
         $this->view('sinhvien/create');
@@ -44,9 +39,53 @@ class sinhvien extends Controller {
                 $sinhvienModel->create($hoten, $gioitinh, $mssv);
             }
             
-            // Thêm xong thì đá quay lại trang danh sách sinh viên
+            header('Location: /PMNM_68PM4_QLSV/public/index.php?url=sinhvien/index');
+            exit();
+        }
+    }
+
+    public function delete() {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+        if ($id > 0) {
+            $sinhvienModel = $this->model('sinhvienModel');
+            $sinhvienModel->delete($id);
+        }
+
+        header('Location: /PMNM_68PM4_QLSV/public/index.php?url=sinhvien/index');
+        exit();
+    }
+
+    public function edit() {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        
+        $sinhvienModel = $this->model('sinhvienModel');
+        $sv = $sinhvienModel->getSinhVienById($id);
+
+        // Nếu tìm thấy sinh viên thì mới mở form sửa, không thì đá về danh sách
+        if ($sv) {
+            $this->view('sinhvien/edit', ['sinhvien' => $sv]);
+        } else {
+            header('Location: /PMNM_68PM4_QLSV/public/index.php?url=sinhvien/index');
+            exit();
+        }
+    }
+
+    public function update() {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $id = (int)$_POST['id'];
+            $hoten = trim($_POST['hoten']);
+            $gioitinh = trim($_POST['gioitinh']);
+            $mssv = trim($_POST['mssv']);
+
+            if ($id > 0 && !empty($hoten) && !empty($mssv)) {
+                $sinhvienModel = $this->model('sinhvienModel');
+                $sinhvienModel->update($id, $hoten, $gioitinh, $mssv);
+            }
+
             header('Location: /PMNM_68PM4_QLSV/public/index.php?url=sinhvien/index');
             exit();
         }
     }
 }
+?>
