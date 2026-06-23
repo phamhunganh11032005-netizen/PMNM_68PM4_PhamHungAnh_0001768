@@ -26,17 +26,57 @@ class sinhvienModel {
     }
 
     // 3. LẤY DANH SÁCH SINH VIÊN THEO PHÂN TRANG
-    public function getSinhVienPaging($limit, $offset) {
-        $sql_query = "SELECT * FROM tbl_sinhvien LIMIT :limit OFFSET :offset";
-        $stmt = $this->conn->prepare($sql_query);
-        
-        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
-        
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+   public function getSinhVienPaging($limit, $offset, $search = '', $orderBy = 'sv.id', $orderDir = 'DESC') {
+    // 1. Tạo câu lệnh SQL cơ bản với LEFT JOIN
+    $sql_query = "SELECT sv.*, lh.tenlop FROM tbl_sinhvien sv 
+                  LEFT JOIN tbl_lophoc lh ON sv.malop = lh.id WHERE 1=1";
+    
+    // 2. Nếu có từ khóa tìm kiếm, thêm điều kiện WHERE (Mssv, Họ tên, Tên lớp)
+    if (!empty($search)) {
+        $sql_query .= " AND (sv.mssv LIKE :search 
+                        OR sv.hoten LIKE :search 
+                        OR lh.tenlop LIKE :search)";
     }
+    
+    // 3. Bổ sung Sắp xếp (Hợp pháp hóa các cột tránh SQL Injection)
+    $allowedColumns = ['sv.id', 'sv.mssv', 'sv.hoten'];
+    if (!in_array($orderBy, $allowedColumns)) {
+        $orderBy = 'sv.id';
+    }
+    $orderDir = ($orderDir === 'ASC') ? 'ASC' : 'DESC';
+    
+    $sql_query .= " ORDER BY {$orderBy} {$orderDir} LIMIT :limit OFFSET :offset";
+    
+    $stmt = $this->conn->prepare($sql_query);
+    
+    // Bind các giá trị phân trang
+    $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+    
+    // Bind từ khóa tìm kiếm nếu có
+    if (!empty($search)) {
+        $searchParam = "%" . $search . "%";
+        $stmt->bindValue(':search', $searchParam);
+    }
+    
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
+// Bổ sung thêm hàm tính tổng số dòng khi có tìm kiếm để phân trang chính xác
+public function getTotalSinhVienCount($search = '') {
+    $sql_query = "SELECT COUNT(*) FROM tbl_sinhvien sv LEFT JOIN tbl_lophoc lh ON sv.malop = lh.id WHERE 1=1";
+    if (!empty($search)) {
+        $sql_query .= " AND (sv.mssv LIKE :search OR sv.hoten LIKE :search OR lh.tenlop LIKE :search)";
+    }
+    $stmt = $this->conn->prepare($sql_query);
+    if (!empty($search)) {
+        $searchParam = "%" . $search . "%";
+        $stmt->bindValue(':search', $searchParam);
+    }
+    $stmt->execute();
+    return $stmt->fetchColumn();
+}
     // 4. ĐẾM TỔNG SỐ SINH VIÊN
     public function countAllSinhVien() {
         $sql_query = "SELECT COUNT(*) as total FROM tbl_sinhvien";
